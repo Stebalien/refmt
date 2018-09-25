@@ -961,7 +961,7 @@ var objFixtures = []struct {
 	{title: "empty",
 		sequence:       fixtures.SequenceMap["empty"],
 		marshalResults: []marshalResults{
-		// not much marshals to empty!
+			// not much marshals to empty!
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
@@ -1307,6 +1307,37 @@ var objFixtures = []struct {
 				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
 					func(x string) (tObjStr, error) {
 						return tObjStr{x}, nil
+					})).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from tObjStr",
+				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "to *tObjStr",
+				slotFn:  func() interface{} { return &tObjStr{} },
+				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
+			{title: "into *wildcard",
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
+		},
+	},
+	{title: "tagged and transformed interface",
+		sequence: fixtures.SequenceMap["tagged string"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).UseTag(50).Transform().
+				TransformMarshal(atlas.MakeMarshalTransformFunc(
+					func(x tObjStr) (interface{}, error) {
+						return x.X, nil
+					})).
+				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+					func(x interface{}) (tObjStr, error) {
+						if s, ok := x.(string); ok {
+							return tObjStr{s}, nil
+						} else {
+							return tObjStr{"default"}, nil
+						}
 					})).
 				Complete(),
 		),
